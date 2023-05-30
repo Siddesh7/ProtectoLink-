@@ -1,65 +1,51 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
-  theme: {
-    extend: {
-      animation: {
-        "bounce-short": "bounces 2s ease-in-out 1",
-      },
-      keyframes: {
-        bounces: {
-          "0%": {
-            transform: "scale(1)",
-          },
-
-          "25%": {
-            transform: "scale(1.15)",
-          },
-
-          "50%": {
-            transform: "scale(0.85)",
-          },
-
-          "75%": {
-            transform: "scale(1.15)",
-          },
-
-          "100%": {
-            transform: "scale(1)",
-          },
-        },
-      },
-      colors: {
-        "state-pending": "#FAC25B",
-        "state-successful": "#5FB927",
-        "state-failed": "#FF5A46",
-      },
-    },
-  },
   daisyui: {
     themes: [
       {
         mytheme: {
-          primary: "#661AE6",
+          primary: "#8be572",
 
-          secondary: "#D926AA",
+          secondary: "#e86229",
 
-          accent: "#1FB2A5",
+          accent: "#f230d1",
 
-          neutral: "#191D24",
+          neutral: "#2A2438",
 
-          "base-100": "#2A303C",
+          "base-100": "#FFFFFF",
 
-          info: "#3ABFF8",
+          info: "#4FA3EE",
 
-          success: "#36D399",
+          success: "#3FD5BC",
 
-          warning: "#FBBD23",
+          warning: "#BC7E0B",
 
-          error: "#F87272",
+          error: "#F10E12",
         },
       },
     ],
+  },
+  theme: {
+    theme: {
+      extend: {
+        animation: {
+          text: "text 2s ease infinite",
+        },
+        keyframes: {
+          text: {
+            "0%, 100%": {
+              "background-size": "200% 200%",
+              "background-position": "left center",
+            },
+            "50%": {
+              "background-size": "200% 200%",
+              "background-position": "right center",
+            },
+          },
+        },
+      },
+    },
   },
   plugins: [require("daisyui")],
 };

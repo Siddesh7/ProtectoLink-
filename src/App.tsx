@@ -11,6 +11,7 @@ import {
   LoginConfig,
 } from "@gelatonetwork/gasless-onboarding";
 import "./App.css";
+import Navbar from "./components/Navbar";
 function App() {
   const [SIPConfig, setSIPConfig] = useState<{
     chainId: number;
@@ -180,10 +181,8 @@ function App() {
   );
 
   const toLoginInView = (
-    <div className="flex justify-center flex-col items-center h-full w-full gap-10">
-      <p className="text-6xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-[#b45f63] to-[#f5c3a6]">
-        Account Abstraction PoC
-      </p>
+    <div>
+      <Navbar />
 
       <div className="h-12">
         {!isLoading && (
@@ -202,16 +201,15 @@ function App() {
 
   return (
     <>
-      {web3AuthProvider && (
+      {/* {web3AuthProvider && (
         <div className="flex justify-between p-5 gap-5 items-center">
           <button onClick={logout} className="px-4 py-1 border-2 ">
             <p className="font-semibold text-gray-800 text-lg">Logout</p>
           </button>
         </div>
-      )}
-      <div className="flex h-screen px-20 justify-center">
-        {web3AuthProvider ? loggedInView : toLoginInView}
-      </div>
+      )} */}
+      <Navbar />
+      <div>{web3AuthProvider ? loggedInView : toLoginInView}</div>
     </>
   );
 }
