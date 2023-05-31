@@ -9,18 +9,45 @@ contract SocketBuyerFactory is AutomateTaskCreator {
     bytes32 public taskId;
 
     event TaskCreated(bytes32 taskId);
-    address[] public deployedSocketContracts;
+
+    struct ContractDetails {
+        address contractAddress;
+        address user;
+        address tokenIn;
+        address tokenOut;
+        uint256 amount;
+    }
+
+    ContractDetails[] public deployedSocketContracts;
+
+    mapping(address => address[]) public userDeployedContracts;
 
     constructor(address _automate) AutomateTaskCreator(_automate, msg.sender) {}
 
     receive() external payable {}
 
-    function getDeployedSocketContracts()
-        external
-        view
-        returns (address[] memory)
-    {
-        return deployedSocketContracts;
+    function getContractsByUser(
+        address _user
+    ) external view returns (ContractDetails[] memory) {
+        address[] storage userContracts = userDeployedContracts[_user];
+        ContractDetails[] memory contractsByUser = new ContractDetails[](
+            userContracts.length
+        );
+
+        for (uint256 i = 0; i < userContracts.length; i++) {
+            address contractAddress = userContracts[i];
+            for (uint256 j = 0; j < deployedSocketContracts.length; j++) {
+                if (
+                    deployedSocketContracts[j].contractAddress ==
+                    contractAddress
+                ) {
+                    contractsByUser[i] = deployedSocketContracts[j];
+                    break;
+                }
+            }
+        }
+
+        return contractsByUser;
     }
 
     function depositToGelatotreasury() external payable {
@@ -38,7 +65,17 @@ contract SocketBuyerFactory is AutomateTaskCreator {
             _tokenIn,
             _amount
         );
-        deployedSocketContracts.push(address(newContract));
+        deployedSocketContracts.push(
+            ContractDetails({
+                contractAddress: address(newContract),
+                user: msg.sender,
+                tokenIn: _tokenIn,
+                tokenOut: _tokenOut,
+                amount: _amount
+            })
+        );
+        userDeployedContracts[msg.sender].push(address(newContract));
+
         ModuleData memory moduleData = ModuleData({
             modules: new Module[](2),
             args: new bytes[](2)

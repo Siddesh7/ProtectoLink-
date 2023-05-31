@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { SafeEventEmitterProvider, UserInfo } from "@web3auth/base";
-import { ethers } from "ethers";
+import { ethers, Contract } from "ethers";
 import {
   SIPFactoryABI,
   SocketFactoryABI,
   RebalancerFactoryABI,
+  socketABI,
 } from "../constants";
 import { Loading } from "../components/Loading";
 import { getChainConfig } from "../utils";
@@ -19,6 +20,8 @@ import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import SIPCard from "../components/SIP";
 import { calculateFlowRate } from "../utils/createFlow";
+import TokenBuyForm from "../components/socket";
+import SocketHistory from "../components/socketHistory";
 
 function Home() {
   const [contractsConfig, setContractsConfig] = useState<
@@ -63,17 +66,90 @@ function Home() {
     if (!gelatoLogin || !web3AuthProvider) {
       return;
     }
-    const conAdd = "0x5d8b4c2554aeb7e86f387b4d6c00ac33499ed01f";
+
+    const fdaixaddress = "0x5d8b4c2554aeb7e86f387b4d6c00ac33499ed01f";
+    const CFAv3address = "0xcfA132E353cB4E398080B9700609bb008eceB125";
+    const abi = [
+      {
+        inputs: [
+          {
+            internalType: "contract ISuperfluid",
+            name: "host",
+            type: "address",
+          },
+          {
+            internalType: "contract IConstantOutflowNFT",
+            name: "constantOutflowNFT",
+            type: "address",
+          },
+          {
+            internalType: "contract IConstantInflowNFT",
+            name: "constantInflowNFT",
+            type: "address",
+          },
+        ],
+        stateMutability: "nonpayable",
+        type: "constructor",
+      },
+      {
+        inputs: [
+          { internalType: "bytes32", name: "id", type: "bytes32" },
+          { internalType: "bytes32[]", name: "data", type: "bytes32[]" },
+        ],
+        name: "createAgreement",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+      },
+    ];
+
+    const cfaV3 = new ethers.Contract(
+      CFAv3address,
+      abi,
+      new ethers.providers.Web3Provider(web3AuthProvider!).getSigner()
+    );
+    let { data } =
+      await cfaV3.populateTransaction.updateFlowOperatorPermissions(
+        fdaixaddress,
+        contractsConfig?.SIPFactory,
+        "7",
+        "2178321882175756675765"
+      );
+    if (!data) {
+      return;
+    }
+    if (!smartWallet) {
+      return;
+    }
+    try {
+      const { taskId } = await smartWallet.sponsorTransaction(
+        CFAv3address,
+        data
+      );
+      console.log(taskId);
+    } catch (error) {
+      console.log("error");
+    }
+  };
+
+  const approveERC20 = async (
+    tokenAddress: string,
+    contractAddress: string
+  ): Promise<void> => {
+    if (!gelatoLogin || !web3AuthProvider) {
+      return;
+    }
+
     const abi = [
       {
         constant: false,
         inputs: [
           {
-            name: "_spender",
+            name: "spender",
             type: "address",
           },
           {
-            name: "_value",
+            name: "value",
             type: "uint256",
           },
         ],
@@ -90,28 +166,34 @@ function Home() {
       },
     ];
 
-    const fDAIx = new ethers.Contract(
-      conAdd,
-      abi,
-      new ethers.providers.Web3Provider(web3AuthProvider!).getSigner()
-    );
-    let { data } = await fDAIx.populateTransaction.approve(
-      contractsConfig?.SIPFactory!,
-      "1000000000000000000000000"
-    );
-    if (!data) {
-      return;
-    }
-    if (!smartWallet) {
-      return;
-    }
+    const web3Provider = new ethers.providers.Web3Provider(web3AuthProvider!);
+    const signer = web3Provider.getSigner();
+    const erc20 = new Contract(tokenAddress, abi, signer);
+
     try {
-      const { taskId } = await smartWallet.sponsorTransaction(conAdd, data);
+      const { data } = await erc20.populateTransaction.approve(
+        contractAddress,
+        "217832144882175756675765"
+      );
+
+      if (!data) {
+        return;
+      }
+
+      if (!smartWallet) {
+        return;
+      }
+
+      const { taskId } = await smartWallet.sponsorTransaction(
+        tokenAddress,
+        data
+      );
       console.log(taskId);
     } catch (error) {
       console.log("error");
     }
   };
+
   const createSIP = async (
     buyToken: string,
     sellToken: string,
@@ -121,7 +203,9 @@ function Home() {
     if (!SIPFactoryContract) {
       return;
     }
-    const calculatedFlowRate = numberOfTokens! * 3600 * 24 * 30;
+
+    const calculatedFlowRate = calculateFlowRate(numberOfTokens);
+    console.log(calculatedFlowRate);
     let { data } = await SIPFactoryContract.populateTransaction.createSIP(
       sellToken,
       buyToken,
@@ -145,6 +229,36 @@ function Home() {
       console.log("error");
     }
     console.log(buyToken, sellToken, numberOfTokens, frequency);
+  };
+  const createSocket = async (
+    buyToken: string,
+    sellToken: string,
+    numberOfTokens: number | null
+  ) => {
+    if (!SIPFactoryContract) {
+      return;
+    }
+
+    let { data } = await socketFactory!.populateTransaction.createTask(
+      sellToken,
+      buyToken,
+      numberOfTokens
+    );
+    if (!data) {
+      return;
+    }
+    if (!smartWallet) {
+      return;
+    }
+    try {
+      const { taskId } = await smartWallet.sponsorTransaction(
+        contractsConfig?.SocketFactory!,
+        data
+      );
+      console.log(taskId);
+    } catch (error) {
+      console.log("error");
+    }
   };
 
   useEffect(() => {
@@ -290,6 +404,8 @@ function Home() {
         approve={approveXtoken}
         loading={smartWallet?.isInitiated()}
       />
+      <TokenBuyForm buy={createSocket} loading={smartWallet?.isInitiated()} />
+      <SocketHistory user={smartWallet?.getAddress()!} approve={approveERC20} />
     </div>
   );
 

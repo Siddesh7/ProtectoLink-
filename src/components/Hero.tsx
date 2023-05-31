@@ -38,7 +38,7 @@ const Hero: React.FC<HeroProps> = ({ login, wallet, loading }) => {
               </div>
             )}
             <div className="flex flex-row items-center">
-              <h1 className="text-3xl font-extrabold animate-gradient">
+              <h1 className="text-3xl font-extrabold text-gray-400">
                 Gasless Automatic Rebalancing
               </h1>
             </div>
