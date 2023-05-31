@@ -1,25 +1,23 @@
-export default function Navbar() {
+import React from "react";
+
+interface NavbarProps {
+  action: () => void;
+  type: string;
+  loading: boolean;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ action, type, loading }) => {
   return (
-    <div className="navbar bg-base-100 w-[95%] m-auto mt-[20px]">
+    <div className="navbar bg-base-200 w-[95%] m-auto pt-[20px]">
       <div className="navbar-start">
         <div className="dropdown">
-          <label tabIndex={0} className="btn btn-ghost lg:hidden">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 6h16M4 12h8m-8 6h16"
-              />
-            </svg>
-          </label>
-          <ul
+          <div className="flex text-4xl">
+            <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-pink-400 to-red-600">
+              Glacier!
+            </h1>
+            <span className="ml-[4px]">🏔️</span>
+          </div>
+          {/* <ul
             tabIndex={0}
             className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
           >
@@ -51,11 +49,10 @@ export default function Navbar() {
             <li>
               <a>Item 3</a>
             </li>
-          </ul>
+          </ul> */}
         </div>
-        <a className="btn btn-ghost normal-case text-xl">daisyUI</a>
       </div>
-      <div className="navbar-center hidden lg:flex">
+      {/* <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal px-1">
           <li>
             <a>Item 1</a>
@@ -86,10 +83,16 @@ export default function Navbar() {
             <a>Item 3</a>
           </li>
         </ul>
-      </div>
-      <div className="navbar-end">
-        <a className="btn">Get started</a>
-      </div>
+      </div> */}
+      {!loading && (
+        <div className="navbar-end">
+          <button className="btn" onClick={action}>
+            {type}
+          </button>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default Navbar;

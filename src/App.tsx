@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { SafeEventEmitterProvider, UserInfo } from "@web3auth/base";
 import { ethers } from "ethers";
-import { SIPFactory } from "./constants";
+import {
+  SIPFactoryABI,
+  SocketFactoryABI,
+  RebalancerFactoryABI,
+} from "./constants";
 import { Loading } from "./components/Loading";
 import { getChainConfig } from "./utils";
 import {
@@ -12,11 +16,19 @@ import {
 } from "@gelatonetwork/gasless-onboarding";
 import "./App.css";
 import Navbar from "./components/Navbar";
+import Hero from "./components/Hero";
+import SIPCard from "./components/SIP";
 function App() {
-  const [SIPConfig, setSIPConfig] = useState<{
-    chainId: number;
-    target: string;
-  }>();
+  const [contractsConfig, setContractsConfig] = useState<
+    | {
+        chainId: number;
+        SIPFactory?: string;
+        SocketFactory?: string;
+        RebalancerFactory?: string;
+      }
+    | undefined
+  >(undefined);
+
   const [currentChain, setCurrentChain] = useState<{
     id: number;
     name: string;
@@ -33,6 +45,11 @@ function App() {
   );
   const [SIPFactoryContract, setSIPFactoryContract] =
     useState<ethers.Contract | null>(null);
+  const [socketFactory, setSocketFactory] = useState<ethers.Contract | null>(
+    null
+  );
+  const [rebalancerFactory, setRebalancerFactory] =
+    useState<ethers.Contract | null>(null);
   const [user, setUser] = useState<Partial<UserInfo> | null>(null);
   const [wallet, setWallet] = useState<{
     address: string;
@@ -40,15 +57,20 @@ function App() {
     chainId: number;
   } | null>(null);
   const [isDeployed, setIsDeployed] = useState<boolean>(false);
-
-  const increment = async () => {
+  const createSIP = async (
+    buyToken: string,
+    sellToken: string,
+    numberOfTokens: number | null,
+    frequency: number | null
+  ) => {
     if (!SIPFactoryContract) {
       return;
     }
+
     let { data } = await SIPFactoryContract.populateTransaction.createSIP(
-      "0x5d8b4c2554aeb7e86f387b4d6c00ac33499ed01f",
-      "0xefa725a5df23b6836ee9660af6477d664bb0818b",
-      "1000000000000000000"
+      sellToken,
+      buyToken,
+      String(frequency)
     );
     if (!data) {
       return;
@@ -58,12 +80,14 @@ function App() {
     }
     try {
       const { taskId } = await smartWallet.sponsorTransaction(
-        SIPConfig?.target!,
+        contractsConfig?.SIPFactory!,
         data
       );
+      console.log(taskId);
     } catch (error) {
       console.log("error");
     }
+    console.log(buyToken, sellToken, numberOfTokens, frequency);
   };
 
   useEffect(() => {
@@ -72,8 +96,15 @@ function App() {
       try {
         const queryParams = new URLSearchParams(window.location.search);
         const chainIdParam = queryParams.get("chainId");
-        const { apiKey, chainId, target, rpcUrl, name } =
-          getChainConfig(chainIdParam);
+        const {
+          apiKey,
+          chainId,
+          SIPFactory,
+          RebalancerFactory,
+          SocketFactory,
+          rpcUrl,
+          name,
+        } = getChainConfig(chainIdParam);
         setCurrentChain({ name, id: chainId });
         const smartWalletConfig: GaslessWalletConfig = { apiKey };
         const loginConfig: LoginConfig = {
@@ -93,7 +124,12 @@ function App() {
           loginConfig,
           smartWalletConfig
         );
-        setSIPConfig({ chainId, target });
+        setContractsConfig({
+          chainId,
+          SIPFactory,
+          SocketFactory,
+          RebalancerFactory,
+        });
         await gelatoLogin.init();
         setGelatoLogin(gelatoLogin);
         const provider = gelatoLogin.getProvider();
@@ -128,13 +164,30 @@ function App() {
       setSmartWallet(gelatoSmartWallet);
       setIsDeployed(await gelatoSmartWallet.isDeployed());
       const SIP = new ethers.Contract(
-        SIPConfig?.target!,
-        SIPFactory,
+        contractsConfig?.SIPFactory!,
+        SIPFactoryABI,
         new ethers.providers.Web3Provider(web3AuthProvider!).getSigner()
       );
       setSIPFactoryContract(SIP);
+      const Socket = new ethers.Contract(
+        contractsConfig?.SocketFactory!,
+        SocketFactoryABI,
+        new ethers.providers.Web3Provider(web3AuthProvider!).getSigner()
+      );
+      setSocketFactory(Socket);
+      const Rebalancer = new ethers.Contract(
+        contractsConfig?.RebalancerFactory!,
+        SocketFactoryABI,
+        new ethers.providers.Web3Provider(web3AuthProvider!).getSigner()
+      );
+      setRebalancerFactory(Rebalancer);
       const fetchStatus = async () => {
-        if (!SIPFactoryContract || !gelatoSmartWallet) {
+        if (
+          !SIPFactoryContract ||
+          !rebalancerFactory ||
+          !socketFactory ||
+          !gelatoSmartWallet
+        ) {
           return;
         }
 
@@ -154,6 +207,7 @@ function App() {
     }
     const web3authProvider = await gelatoLogin.login();
     setWeb3AuthProvider(web3authProvider);
+    console.log("logged in");
   };
 
   const logout = async () => {
@@ -168,34 +222,21 @@ function App() {
     setSIPFactoryContract(null);
   };
 
-  const loggedInView = isLoading ? (
-    <Loading />
-  ) : (
-    <div className="flex flex-col h-full w-[700px] gap-2 py-10">
-      {smartWallet?.isInitiated() && (
-        <div className="flex justify-center flex-col gap-10">
-          <button onClick={increment}>Call</button>
-        </div>
-      )}
+  const loggedInView = (
+    <div className="bg-base-200">
+      <Navbar action={logout} type={"Logout"} loading={isLoading} />
+      <h1>wallet {smartWallet?.getAddress()!}</h1>
+      <Hero login={login} wallet={web3AuthProvider} loading={isLoading} />
+
+      <SIPCard buy={createSIP} loading={smartWallet?.isInitiated()} />
     </div>
   );
 
   const toLoginInView = (
     <div>
-      <Navbar />
+      <Navbar action={login} type={"Login"} loading={isLoading} />
 
-      <div className="h-12">
-        {!isLoading && (
-          <button
-            onClick={login}
-            className="px-4 border-2 border-[#b45f63] rounded-lg"
-          >
-            <p className="px-4 py-1 font-semibold text-gray-800 text-lg">
-              Login
-            </p>
-          </button>
-        )}
-      </div>
+      <Hero login={login} wallet={web3AuthProvider} loading={isLoading} />
     </div>
   );
 
@@ -208,8 +249,10 @@ function App() {
           </button>
         </div>
       )} */}
-      <Navbar />
-      <div>{web3AuthProvider ? loggedInView : toLoginInView}</div>
+
+      <div className="bg-base-200">
+        {web3AuthProvider ? loggedInView : toLoginInView}
+      </div>
     </>
   );
 }

@@ -1,17 +1,52 @@
-export default function Hero() {
+import React from "react";
+import "../utilities.css";
+
+interface HeroProps {
+  login: () => void;
+  wallet: any;
+  loading: boolean;
+}
+
+const Hero: React.FC<HeroProps> = ({ login, wallet, loading }) => {
   return (
-    <div className="hero min-h-screen bg-base-200">
-      <div className="hero-content text-center">
-        <div className="max-w-md">
-          <h1 className="text-5xl font-bold">Hello there</h1>
-          <p className="py-6">
-            Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda
-            excepturi exercitationem quasi. In deleniti eaque aut repudiandae et
-            a id nisi.
+    <div className="hero min-h-[80vh] bg-base-200">
+      <div className="hero-content flex-col lg:flex-row-reverse">
+        <div>
+          <h1 className="text-5xl font-extrabold text-black max-w-[70%]">
+            The only platform to simplify investing!
+          </h1>
+          <p className="py-6 text-[20px] max-w-[70%]">
+            Level Up Your DeFi Game: Introducing Our Automatic Portfolio
+            Rebalancing Vault and more such automations for you!
           </p>
-          <button className="btn btn-primary">Get Started</button>
+          <div className="flex">
+            {!wallet && (
+              <div>
+                {loading ? (
+                  <button
+                    className="btn btn-primary mr-[20px]"
+                    onClick={login}
+                    disabled
+                  >
+                    Getting ready
+                  </button>
+                ) : (
+                  <button className="btn btn-primary mr-[20px]" onClick={login}>
+                    Get Started
+                  </button>
+                )}
+              </div>
+            )}
+            <div className="flex flex-row items-center">
+              <h1 className="text-3xl font-extrabold animate-gradient">
+                Gasless Automatic Rebalancing
+              </h1>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default Hero;
