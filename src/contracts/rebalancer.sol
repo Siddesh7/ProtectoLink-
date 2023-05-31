@@ -12,7 +12,7 @@ contract PortfolioRebalancer {
         AggregatorV3Interface priceFeed; // Chainlink price feed for the token
     }
 
-    address private owner;
+    address public owner;
     TokenInfo[] public tokens;
     uint256 public totalPortfolioValue;
     ISwapRouter public immutable swapRouter;
@@ -21,12 +21,13 @@ contract PortfolioRebalancer {
     address public constant DT = 0xefA725A5df23b6836EE9660Af6477D664BB0818B;
 
     constructor(
+        address _owner,
         address[] memory tokenAddresses,
         uint256[] memory targetWeights,
         address[] memory priceFeedAddresses,
         uint256 portfolioValue
     ) payable {
-        owner = msg.sender;
+        owner = _owner;
         swapRouter = ISwapRouter(0xE592427A0AEce92De3Edee1F18E0157C05861564);
         require(
             tokenAddresses.length > 0,
@@ -217,7 +218,7 @@ contract PortfolioRebalancer {
             uint256 targetDeposit = (targetValue * 1e18) / tokenPrice;
             targetDeposits[i] = targetDeposit; // Store the targetDeposit value in the array
             require(
-                token.balanceOf(owner) >= targetDeposit,
+                token.balanceOf(msg.sender) >= targetDeposit,
                 "Not sufficient balance"
             );
             token.transferFrom(msg.sender, address(this), targetDeposit);

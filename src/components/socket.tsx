@@ -61,7 +61,7 @@ const TokenBuyForm: React.FC<Props> = ({ buy, loading }) => {
   };
 
   return (
-    <div className="card w-[80vw] m-auto bg-neutral text-neutral-content">
+    <div className="mt-[100px] card w-[80vw] m-auto bg-neutral text-neutral-content">
       <div className="card-body items-center text-center">
         <h2 className="text-3xl font-extrabold animate-gradient">
           Start a Token Buy Order!
@@ -121,7 +121,7 @@ const TokenBuyForm: React.FC<Props> = ({ buy, loading }) => {
               value={selectedReceiveToken}
               onChange={handleReceiveTokenChange}
             >
-              <option value="">Select the token to receive</option>
+              <option value="">Select the token to sell</option>
               {buyingTokens.map((token, index) => (
                 <option key={index} value={buyingTokensAddresses[index]}>
                   {token}

@@ -78,7 +78,7 @@ const SIPForm: React.FC<Props> = ({ buy, loading, approve }) => {
   };
 
   return (
-    <div className="card w-[80vw] m-auto bg-neutral text-neutral-content">
+    <div className="my-[60px] card w-[80vw] m-auto bg-neutral text-neutral-content">
       <div className="card-body items-center text-center">
         <h2 className="text-3xl font-extrabold animate-gradient">
           Start a SIP in 1 click!

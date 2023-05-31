@@ -5,10 +5,20 @@ import "./rebalancer.sol";
 import "./AutomateTaskCreator.sol";
 
 contract PortfolioRebalancerFactory is AutomateTaskCreator {
-    address[] public deployedContracts;
+    struct ContractData {
+        address contractAddress;
+        address userAddress;
+        address[] tokenAddresses;
+        uint256[] targetWeights;
+        address[] priceFeedAddresses;
+        uint256 portfolioValue;
+    }
+
     address public immutable owner;
     bytes32 public taskId;
     event TaskCreated(bytes32 taskId);
+
+    mapping(address => ContractData[]) public contractsByUser;
 
     constructor(address _automate) AutomateTaskCreator(_automate, msg.sender) {
         owner = msg.sender;
@@ -28,13 +38,23 @@ contract PortfolioRebalancerFactory is AutomateTaskCreator {
         uint256 interval
     ) external {
         PortfolioRebalancer newContract = new PortfolioRebalancer(
+            msg.sender,
             tokenAddresses,
             targetWeights,
             priceFeedAddresses,
             portfolioValue
         );
-        deployedContracts.push(address(newContract));
-        bytes memory execData = abi.encodeCall(newContract.rebalance, ());
+        ContractData memory contractData = ContractData({
+            contractAddress: address(newContract),
+            userAddress: msg.sender,
+            tokenAddresses: tokenAddresses,
+            targetWeights: targetWeights,
+            priceFeedAddresses: priceFeedAddresses,
+            portfolioValue: portfolioValue
+        });
+
+        contractsByUser[msg.sender].push(contractData);
+        bytes memory execData = abi.encodeWithSignature("rebalance()");
 
         ModuleData memory moduleData = ModuleData({
             modules: new Module[](2),
@@ -57,7 +77,9 @@ contract PortfolioRebalancerFactory is AutomateTaskCreator {
         emit TaskCreated(id);
     }
 
-    function getDeployedContracts() external view returns (address[] memory) {
-        return deployedContracts;
+    function getContractDeployedByUser(
+        address user
+    ) external view returns (ContractData[] memory) {
+        return contractsByUser[user];
     }
 }

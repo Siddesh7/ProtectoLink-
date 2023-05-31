@@ -6,6 +6,7 @@ import {
   SocketFactoryABI,
   RebalancerFactoryABI,
   socketABI,
+  cfaABI,
 } from "../constants";
 import { Loading } from "../components/Loading";
 import { getChainConfig } from "../utils";
@@ -22,6 +23,8 @@ import SIPCard from "../components/SIP";
 import { calculateFlowRate } from "../utils/createFlow";
 import TokenBuyForm from "../components/socket";
 import SocketHistory from "../components/socketHistory";
+import PortfolioRebalancer from "../components/portfolioRebalancer";
+import RebalanceHistory from "../components/rebalancerHistory";
 
 function Home() {
   const [contractsConfig, setContractsConfig] = useState<
@@ -69,43 +72,10 @@ function Home() {
 
     const fdaixaddress = "0x5d8b4c2554aeb7e86f387b4d6c00ac33499ed01f";
     const CFAv3address = "0xcfA132E353cB4E398080B9700609bb008eceB125";
-    const abi = [
-      {
-        inputs: [
-          {
-            internalType: "contract ISuperfluid",
-            name: "host",
-            type: "address",
-          },
-          {
-            internalType: "contract IConstantOutflowNFT",
-            name: "constantOutflowNFT",
-            type: "address",
-          },
-          {
-            internalType: "contract IConstantInflowNFT",
-            name: "constantInflowNFT",
-            type: "address",
-          },
-        ],
-        stateMutability: "nonpayable",
-        type: "constructor",
-      },
-      {
-        inputs: [
-          { internalType: "bytes32", name: "id", type: "bytes32" },
-          { internalType: "bytes32[]", name: "data", type: "bytes32[]" },
-        ],
-        name: "createAgreement",
-        outputs: [],
-        stateMutability: "nonpayable",
-        type: "function",
-      },
-    ];
 
     const cfaV3 = new ethers.Contract(
       CFAv3address,
-      abi,
+      cfaABI,
       new ethers.providers.Web3Provider(web3AuthProvider!).getSigner()
     );
     let { data } =
@@ -126,7 +96,7 @@ function Home() {
         CFAv3address,
         data
       );
-      console.log(taskId);
+      console.log(`https://api.gelato.digital/tasks/status/${taskId}`);
     } catch (error) {
       console.log("error");
     }
@@ -188,9 +158,118 @@ function Home() {
         tokenAddress,
         data
       );
-      console.log(taskId);
+      console.log(`https://api.gelato.digital/tasks/status/${taskId}`);
     } catch (error) {
       console.log("error");
+    }
+  };
+  const depositAllTokens = async (contractAddress: string): Promise<void> => {
+    if (!gelatoLogin || !web3AuthProvider) {
+      return;
+    }
+
+    const abi = [
+      {
+        inputs: [],
+        name: "depositTokens",
+        outputs: [
+          {
+            internalType: "uint256[]",
+            name: "",
+            type: "uint256[]",
+          },
+        ],
+        stateMutability: "nonpayable",
+        type: "function",
+      },
+    ];
+
+    const web3Provider = new ethers.providers.Web3Provider(web3AuthProvider!);
+    const signer = web3Provider.getSigner();
+    const contract = new Contract(contractAddress, abi, signer);
+
+    try {
+      const { data } = await contract.populateTransaction.depositTokens();
+
+      if (!data) {
+        return;
+      }
+
+      if (!smartWallet) {
+        return;
+      }
+
+      const { taskId } = await smartWallet.sponsorTransaction(
+        contractAddress,
+        data
+      );
+      console.log(`https://api.gelato.digital/tasks/status/${taskId}`);
+    } catch (error) {
+      console.log("error");
+    }
+  };
+  const approveAllTokens = async (
+    assetAddresses: string[],
+    contractAddress: string
+  ): Promise<void> => {
+    if (!gelatoLogin || !web3AuthProvider) {
+      return;
+    }
+
+    const abi = [
+      {
+        constant: false,
+        inputs: [
+          {
+            name: "spender",
+            type: "address",
+          },
+          {
+            name: "value",
+            type: "uint256",
+          },
+        ],
+        name: "approve",
+        outputs: [
+          {
+            name: "",
+            type: "bool",
+          },
+        ],
+        payable: false,
+        stateMutability: "nonpayable",
+        type: "function",
+      },
+    ];
+
+    const web3Provider = new ethers.providers.Web3Provider(web3AuthProvider!);
+    const signer = web3Provider.getSigner();
+    for (const token of assetAddresses) {
+      console.log(contractAddress);
+      const erc20 = new Contract(token, abi, signer);
+
+      try {
+        const { data } = await erc20.populateTransaction.approve(
+          contractAddress,
+          "217832144882175756675765"
+        );
+
+        if (!data) {
+          return;
+        }
+
+        if (!smartWallet) {
+          return;
+        }
+
+        const { taskId } = await smartWallet.sponsorTransaction(
+          "0xefA725A5df23b6836EE9660Af6477D664BB0818B",
+          data
+        );
+        console.log(`https://api.gelato.digital/tasks/status/${taskId}`);
+      } catch (error) {
+        console.log("error");
+      }
     }
   };
 
@@ -206,7 +285,7 @@ function Home() {
 
     const calculatedFlowRate = calculateFlowRate(numberOfTokens);
     console.log(calculatedFlowRate);
-    let { data } = await SIPFactoryContract.populateTransaction.createSIP(
+    let { data } = await SIPFactoryContract!.populateTransaction.createSIP(
       sellToken,
       buyToken,
       String(frequency),
@@ -224,11 +303,45 @@ function Home() {
         contractsConfig?.SIPFactory!,
         data
       );
-      console.log(taskId);
+      console.log(`https://api.gelato.digital/tasks/status/${taskId}`);
     } catch (error) {
       console.log("error");
     }
-    console.log(buyToken, sellToken, numberOfTokens, frequency);
+  };
+  const createVault = async (
+    tokenAddresses: string[],
+    targetWeights: number[],
+    priceFeedAddresses: string[],
+    portfolioValue: number,
+    interval: number
+  ) => {
+    if (!rebalancerFactory) {
+      return;
+    }
+
+    let { data } =
+      await rebalancerFactory!.populateTransaction.createPortfolioRebalancer(
+        tokenAddresses,
+        targetWeights,
+        priceFeedAddresses,
+        portfolioValue,
+        interval
+      );
+    if (!data) {
+      return;
+    }
+    if (!smartWallet) {
+      return;
+    }
+    try {
+      const { taskId } = await smartWallet.sponsorTransaction(
+        contractsConfig?.RebalancerFactory!,
+        data
+      );
+      console.log(`https://api.gelato.digital/tasks/status/${taskId}`);
+    } catch (error) {
+      console.log("error");
+    }
   };
   const createSocket = async (
     buyToken: string,
@@ -255,7 +368,7 @@ function Home() {
         contractsConfig?.SocketFactory!,
         data
       );
-      console.log(taskId);
+      console.log(`https://api.gelato.digital/tasks/status/${taskId}`);
     } catch (error) {
       console.log("error");
     }
@@ -396,9 +509,14 @@ function Home() {
   const loggedInView = (
     <div className="bg-base-200">
       <Navbar action={logout} type={"Logout"} loading={isLoading} />
-      <h1>wallet {smartWallet?.getAddress()!}</h1>
-      <Hero login={login} wallet={web3AuthProvider} loading={isLoading} />
 
+      <Hero login={login} wallet={web3AuthProvider} loading={isLoading} />
+      <PortfolioRebalancer createPortfolioRebalancer={createVault} />
+      <RebalanceHistory
+        user={smartWallet?.getAddress()!}
+        approve={approveAllTokens}
+        deposit={depositAllTokens}
+      />
       <SIPCard
         buy={createSIP}
         approve={approveXtoken}
@@ -419,14 +537,6 @@ function Home() {
 
   return (
     <>
-      {/* {web3AuthProvider && (
-        <div className="flex justify-between p-5 gap-5 items-center">
-          <button onClick={logout} className="px-4 py-1 border-2 ">
-            <p className="font-semibold text-gray-800 text-lg">Logout</p>
-          </button>
-        </div>
-      )} */}
-
       <div className="bg-base-200">
         {web3AuthProvider ? loggedInView : toLoginInView}
       </div>

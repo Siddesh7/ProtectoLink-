@@ -9,7 +9,7 @@ interface HeroProps {
 
 const Hero: React.FC<HeroProps> = ({ login, wallet, loading }) => {
   return (
-    <div className="hero min-h-[80vh] bg-base-200">
+    <div className="hero min-h-[100vh] bg-base-200">
       <div className="hero-content flex-col lg:flex-row-reverse">
         <div>
           <h1 className="text-5xl font-extrabold text-black max-w-[70%]">
