@@ -17,10 +17,11 @@ interface Props {
     frequency: number | null
   ) => void;
   loading: any;
+  approve: () => void;
 }
 const days: number[] = [7, 14, 30, 60];
 
-const SIPForm: React.FC<Props> = ({ buy, loading }) => {
+const SIPForm: React.FC<Props> = ({ buy, loading, approve }) => {
   const [selectedBuyingToken, setSelectedBuyingToken] = useState<string>("");
   const [selectedNumberOfTokens, setSelectedNumberOfTokens] = useState<
     number | null
@@ -29,6 +30,7 @@ const SIPForm: React.FC<Props> = ({ buy, loading }) => {
   const [selectedFrequency, setSelectedFrequency] = useState<number | null>(
     null
   );
+  const [approvedTokens, setApprovedTokens] = useState<boolean>(false);
 
   const handleBuyingTokenChange = (
     event: React.ChangeEvent<HTMLSelectElement>
@@ -64,7 +66,12 @@ const SIPForm: React.FC<Props> = ({ buy, loading }) => {
       selectedNumberOfTokens,
       selectedFrequency
     );
-    // Perform your desired action with the form values
+    console.log(
+      selectedBuyingToken,
+      selectedSellingToken,
+      selectedNumberOfTokens,
+      selectedFrequency
+    );
     console.log(
       `I want to buy ${selectedBuyingToken} token for ${selectedNumberOfTokens} ${selectedSellingToken} every ${selectedFrequency} days`
     );
@@ -143,42 +150,86 @@ const SIPForm: React.FC<Props> = ({ buy, loading }) => {
             </select>
 
             <span>days</span>
-
-            {!loading ? (
-              <button
-                type="submit"
-                className={`ml-4 py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 ${
-                  !selectedBuyingToken ||
-                  selectedNumberOfTokens === null ||
-                  !selectedSellingToken ||
-                  selectedFrequency === null
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
-                }`}
-                disabled
-              >
-                Create SIP
-              </button>
+            {approvedTokens ? (
+              <div>
+                {!loading ? (
+                  <button
+                    type="submit"
+                    className={`ml-4 py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 ${
+                      !selectedBuyingToken ||
+                      selectedNumberOfTokens === null ||
+                      !selectedSellingToken ||
+                      selectedFrequency === null
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
+                    disabled
+                  >
+                    Create SIP
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    className={`ml-4 py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 ${
+                      !selectedBuyingToken ||
+                      selectedNumberOfTokens === null ||
+                      !selectedSellingToken ||
+                      selectedFrequency === null
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
+                    disabled={
+                      !selectedBuyingToken ||
+                      selectedNumberOfTokens === null ||
+                      !selectedSellingToken ||
+                      selectedFrequency === null
+                    }
+                  >
+                    Create SIP
+                  </button>
+                )}
+              </div>
             ) : (
-              <button
-                type="submit"
-                className={`ml-4 py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 ${
-                  !selectedBuyingToken ||
-                  selectedNumberOfTokens === null ||
-                  !selectedSellingToken ||
-                  selectedFrequency === null
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
-                }`}
-                disabled={
-                  !selectedBuyingToken ||
-                  selectedNumberOfTokens === null ||
-                  !selectedSellingToken ||
-                  selectedFrequency === null
-                }
-              >
-                Create SIP
-              </button>
+              <div>
+                {!loading ? (
+                  <button
+                    className={`ml-4 py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 ${
+                      !selectedBuyingToken ||
+                      selectedNumberOfTokens === null ||
+                      !selectedSellingToken ||
+                      selectedFrequency === null
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
+                    disabled
+                  >
+                    Approve fDAIx
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      approve();
+                      setApprovedTokens(true);
+                    }}
+                    className={`ml-4 py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 ${
+                      !selectedBuyingToken ||
+                      selectedNumberOfTokens === null ||
+                      !selectedSellingToken ||
+                      selectedFrequency === null
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
+                    disabled={
+                      !selectedBuyingToken ||
+                      selectedNumberOfTokens === null ||
+                      !selectedSellingToken ||
+                      selectedFrequency === null
+                    }
+                  >
+                    Approve fDAIx
+                  </button>
+                )}
+              </div>
             )}
           </form>
         </div>

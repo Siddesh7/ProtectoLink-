@@ -59,6 +59,59 @@ function Home() {
     chainId: number;
   } | null>(null);
   const [isDeployed, setIsDeployed] = useState<boolean>(false);
+  const approveXtoken = async () => {
+    if (!gelatoLogin || !web3AuthProvider) {
+      return;
+    }
+    const conAdd = "0x5d8b4c2554aeb7e86f387b4d6c00ac33499ed01f";
+    const abi = [
+      {
+        constant: false,
+        inputs: [
+          {
+            name: "_spender",
+            type: "address",
+          },
+          {
+            name: "_value",
+            type: "uint256",
+          },
+        ],
+        name: "approve",
+        outputs: [
+          {
+            name: "",
+            type: "bool",
+          },
+        ],
+        payable: false,
+        stateMutability: "nonpayable",
+        type: "function",
+      },
+    ];
+
+    const fDAIx = new ethers.Contract(
+      conAdd,
+      abi,
+      new ethers.providers.Web3Provider(web3AuthProvider!).getSigner()
+    );
+    let { data } = await fDAIx.populateTransaction.approve(
+      contractsConfig?.SIPFactory!,
+      "1000000000000000000000000"
+    );
+    if (!data) {
+      return;
+    }
+    if (!smartWallet) {
+      return;
+    }
+    try {
+      const { taskId } = await smartWallet.sponsorTransaction(conAdd, data);
+      console.log(taskId);
+    } catch (error) {
+      console.log("error");
+    }
+  };
   const createSIP = async (
     buyToken: string,
     sellToken: string,
@@ -68,13 +121,13 @@ function Home() {
     if (!SIPFactoryContract) {
       return;
     }
-
+    const calculatedFlowRate = numberOfTokens! * 3600 * 24 * 30;
     let { data } = await SIPFactoryContract.populateTransaction.createSIP(
       sellToken,
       buyToken,
       String(frequency),
       sellToken,
-      calculateFlowRate(numberOfTokens!)
+      String(calculatedFlowRate)
     );
     if (!data) {
       return;
@@ -232,7 +285,11 @@ function Home() {
       <h1>wallet {smartWallet?.getAddress()!}</h1>
       <Hero login={login} wallet={web3AuthProvider} loading={isLoading} />
 
-      <SIPCard buy={createSIP} loading={smartWallet?.isInitiated()} />
+      <SIPCard
+        buy={createSIP}
+        approve={approveXtoken}
+        loading={smartWallet?.isInitiated()}
+      />
     </div>
   );
 
