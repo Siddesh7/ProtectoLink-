@@ -3,11 +3,18 @@ pragma solidity ^0.8.0;
 
 import "./AutomateTaskCreator.sol";
 import "./sip.sol";
+import {ISuperfluid} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+
+import {ISuperToken} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
+
+import {SuperTokenV1Library} from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
 
 contract SIPFactory is AutomateTaskCreator {
     bytes32 public taskId;
     event TaskCreated(bytes32 taskId);
     address[] public deployedSIPContracts;
+    using SuperTokenV1Library for ISuperToken;
+    ISuperToken public tokenx;
 
     constructor(address _automate) AutomateTaskCreator(_automate, msg.sender) {}
 
@@ -28,7 +35,9 @@ contract SIPFactory is AutomateTaskCreator {
     function createSIP(
         address _tokenIn,
         address _tokenOut,
-        uint256 interval
+        uint256 interval,
+        ISuperToken _token,
+        int96 flowRate
     ) external returns (address) {
         SimpleBuyerContract newContract = new SimpleBuyerContract(
             msg.sender,
@@ -36,9 +45,10 @@ contract SIPFactory is AutomateTaskCreator {
             _tokenIn
         );
         deployedSIPContracts.push(address(newContract));
+        tokenx = _token;
 
         bytes memory execData = abi.encodeCall(newContract.buyPerodically, ());
-
+        tokenx.createFlowFrom(msg.sender, address(newContract), flowRate);
         ModuleData memory moduleData = ModuleData({
             modules: new Module[](2),
             args: new bytes[](2)

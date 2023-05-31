@@ -262,6 +262,52 @@ export const SIPFactoryABI = [
     inputs: [
       {
         internalType: "address",
+        name: "_tokenIn",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "_tokenOut",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "interval",
+        type: "uint256",
+      },
+      {
+        internalType: "contract ISuperToken",
+        name: "_token",
+        type: "address",
+      },
+      {
+        internalType: "int96",
+        name: "flowRate",
+        type: "int96",
+      },
+    ],
+    name: "createSIP",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "depositToGelatotreasury",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
         name: "_automate",
         type: "address",
       },
@@ -283,6 +329,28 @@ export const SIPFactoryABI = [
     type: "event",
   },
   {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "_amount",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "_token",
+        type: "address",
+      },
+    ],
+    name: "withdrawFunds",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    stateMutability: "payable",
+    type: "receive",
+  },
+  {
     inputs: [],
     name: "automate",
     outputs: [
@@ -293,35 +361,6 @@ export const SIPFactoryABI = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "_tokenIn",
-        type: "address",
-      },
-      {
-        internalType: "address",
-        name: "_tokenOut",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "interval",
-        type: "uint256",
-      },
-    ],
-    name: "createSIP",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -354,13 +393,6 @@ export const SIPFactoryABI = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "depositToGelatotreasury",
-    outputs: [],
-    stateMutability: "payable",
     type: "function",
   },
   {
@@ -416,26 +448,17 @@ export const SIPFactoryABI = [
     type: "function",
   },
   {
-    inputs: [
+    inputs: [],
+    name: "tokenx",
+    outputs: [
       {
-        internalType: "uint256",
-        name: "_amount",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "_token",
+        internalType: "contract ISuperToken",
+        name: "",
         type: "address",
       },
     ],
-    name: "withdrawFunds",
-    outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
     type: "function",
-  },
-  {
-    stateMutability: "payable",
-    type: "receive",
   },
 ];
 export const SocketFactoryABI = [
