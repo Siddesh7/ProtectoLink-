@@ -508,7 +508,12 @@ function Home() {
 
   const loggedInView = (
     <div className="bg-base-200">
-      <Navbar action={logout} type={"Logout"} loading={isLoading} />
+      <Navbar
+        action={logout}
+        type={"Logout"}
+        loading={isLoading}
+        wallet={smartWallet?.getAddress()!}
+      />
 
       <Hero login={login} wallet={web3AuthProvider} loading={isLoading} />
       <PortfolioRebalancer createPortfolioRebalancer={createVault} />
@@ -529,7 +534,12 @@ function Home() {
 
   const toLoginInView = (
     <div>
-      <Navbar action={login} type={"Login"} loading={isLoading} />
+      <Navbar
+        action={login}
+        type={"Login"}
+        loading={isLoading}
+        wallet={smartWallet?.getAddress()!}
+      />
 
       <Hero login={login} wallet={web3AuthProvider} loading={isLoading} />
     </div>
