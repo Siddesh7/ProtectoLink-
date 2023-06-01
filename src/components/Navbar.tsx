@@ -23,12 +23,14 @@ const Navbar: React.FC<NavbarProps> = ({ action, type, loading, wallet }) => {
 
       {!loading && (
         <div className="navbar-end">
-          <a
-            className="text-[16px] mx-[6px]"
-            href={`http://mumbai.polygonscan.com/address/${wallet}`}
-          >
-            {wallet.slice(0, 4)}.....{wallet.slice(38, 43)}
-          </a>
+          {wallet! && (
+            <a
+              className="text-[16px] mx-[6px]"
+              href={`http://mumbai.polygonscan.com/address/${wallet}`}
+            >
+              {wallet?.slice(0, 4)}.....{wallet?.slice(38, 43)}
+            </a>
+          )}
 
           <button className="btn" onClick={action}>
             {type}
