@@ -13,7 +13,7 @@ Technologies used:
 
 *ProtectoLink* offers 3 products
 1. ProtectoLink Insurance - Asset Protection automated settlements.
-1. ProtectoLink Portfolio Rebalancer - Automatically swaps tokens based on predefined logic using Gelato Automation and Uniswap
+1. ProtectoLink Portfolio Rebalancer - Automatically swaps tokens based on predefined logic using Chainlink Automation and Uniswap
 
 2. ProtectoLink SIP - Offers systematic buying experience without head work.
 3. ProtectoLink Triggers - Set trigger to do actions, set buy token action when you receive a token.
