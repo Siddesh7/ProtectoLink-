@@ -14,7 +14,7 @@ const Navbar: React.FC<NavbarProps> = ({ action, type, loading, wallet }) => {
         <div className="dropdown">
           <div className="flex text-4xl">
             <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-br from-pink-400 to-red-600">
-              Glacier!
+              ProtectoLink!
             </h1>
             <span className="ml-[4px]">🏔️</span>
           </div>
