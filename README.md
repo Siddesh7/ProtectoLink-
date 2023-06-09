@@ -18,6 +18,9 @@ Technologies used:
 2. ProtectoLink SIP - Offers systematic buying experience without head work.
 3. ProtectoLink Triggers - Set trigger to do actions, set buy token action when you receive a token.
 
+Factory contracts are in [```src/contracts```]([```src/contracts```](https://github.com/Siddesh7/ProtectoLink/tree/main/src/contracts))
+
+
 Contracts are deployed in Polygon Mumbai
 ```
     SIPFactory: "0x0f1eAdb933A19dE5899ac427d1Ffee14f44c9251",
