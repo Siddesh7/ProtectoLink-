@@ -4,15 +4,16 @@ pragma abicoder v2;
 
 import "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import "@uniswap/v3-periphery/contracts/interfaces/ISwapRouter.sol";
+import "@chainlink/contracts/src/v0.8/AutomationCompatible.sol";
 
-contract socketBuyer {
+contract socketBuyer is AutomationCompatibleInterface {
     address public owner;
     address public targetTokenAddress;
     address public tokenAddress;
     ISwapRouter public immutable swapRouter;
     uint24 public constant poolFee = 3000;
     bool status;
-    uint256 amountToBuy;
+    uint256 public amountToBuy;
 
     constructor(
         address _owner,
@@ -30,7 +31,7 @@ contract socketBuyer {
 
     receive() external payable {}
 
-    function buyImmediately() external returns (uint256 amountOut) {
+    function buyImmediately() public returns (uint256 amountOut) {
         // msg.sender must approve this contract
         TransferHelper.safeTransferFrom(
             tokenAddress,
@@ -77,15 +78,27 @@ contract socketBuyer {
         return true;
     }
 
-    function checker()
+  
+        function checkUpkeep(
+        bytes calldata /* checkData */
+    )
         external
         view
-        returns (bool canExec, bytes memory execPayload)
-    {
+        override
+        returns (bool upkeepNeeded, bytes memory /* performData */)
+    { 
         IERC20 token = IERC20(tokenAddress);
         uint256 balance = token.balanceOf(owner);
-        canExec = (balance >= amountToBuy);
+        upkeepNeeded = (balance >= amountToBuy);
+    }
 
-        execPayload = abi.encodeCall(this.buyImmediately, ());
+    function performUpkeep(bytes calldata /* performData */) external override {
+        //We highly recommend revalidating the upkeep in the performUpkeep function
+             IERC20 token = IERC20(tokenAddress);
+        uint256 balance = token.balanceOf(owner);
+        if (balance >= amountToBuy) {
+ 
+            buyImmediately();
+        }
     }
 }

@@ -1,20 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
 import { getChainConfig } from "../utils";
-import { RebalancerFactoryABI } from "../constants";
+import { insuranceDeployerABI } from "../constants";
 
-interface RebalanceHistoryProps {
+interface InsuranceHistoryProps {
   user: string;
-  approve: (tokenAddress: string[], contractAddress: string) => void;
-  deposit: (contractAddress: string) => void;
-  withdraw: (contractAddress: string) => void;
+  deposit: (address: string) => void;
+  approve: (tokenAddress: string, contractAddress: string) => void;
 }
 
-const RebalanceHistory: React.FC<RebalanceHistoryProps> = ({
+const InsuranceHistory: React.FC<InsuranceHistoryProps> = ({
   user,
-  approve,
   deposit,
-  withdraw,
+  approve,
 }) => {
   const [transactions, setTransactions] = useState<any[]>([]);
 
@@ -26,13 +24,13 @@ const RebalanceHistory: React.FC<RebalanceHistoryProps> = ({
           chainConfig?.rpcUrl
         );
 
-        const rebalancer = new ethers.Contract(
-          chainConfig?.RebalancerFactory,
-          RebalancerFactoryABI,
+        const insurance = new ethers.Contract(
+          chainConfig?.InsuranceDeployer,
+          insuranceDeployerABI,
           provider
         );
 
-        const response = await rebalancer.getContractDeployedByUser(user);
+        const response = await insurance.getContractsDeployedByUser(user);
         setTransactions(response);
         console.log(response);
       } catch (error) {
@@ -43,13 +41,9 @@ const RebalanceHistory: React.FC<RebalanceHistoryProps> = ({
     fetchTransactions();
   }, [user]);
 
-  const convertBigNumberToNumber = (value: ethers.BigNumber) => {
-    return value.toNumber();
-  };
-
   return (
     <div className="w-[80vw] m-auto mt-[20px]">
-      <h3 className="text-3xl font-bold text-center">Your Vaults</h3>
+      <h3 className="text-3xl font-bold text-center">Your Insurance Vaults</h3>
       <div className="overflow-x-auto">
         {transactions.length === 0 ? (
           <p className="text-center">No new transactions found</p>
@@ -60,7 +54,7 @@ const RebalanceHistory: React.FC<RebalanceHistoryProps> = ({
                 <th></th>
                 <th>Portfolio</th>
 
-                <th>Approve Token Spend</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -71,10 +65,10 @@ const RebalanceHistory: React.FC<RebalanceHistoryProps> = ({
 
                   <td>
                     <button
-                      className="btn"
+                      className="btn btn-primary ml-[10px]"
                       onClick={() => {
                         approve(
-                          transaction.tokenAddresses,
+                          transaction.tokenAddress,
                           transaction.contractAddress
                         );
                       }}
@@ -89,14 +83,6 @@ const RebalanceHistory: React.FC<RebalanceHistoryProps> = ({
                     >
                       Deposit
                     </button>
-                    <button
-                      className="btn btn-accent ml-[10px]"
-                      onClick={() => {
-                        withdraw(transaction.contractAddress);
-                      }}
-                    >
-                      Withdraw
-                    </button>
                   </td>
                 </tr>
               ))}
@@ -108,4 +94,4 @@ const RebalanceHistory: React.FC<RebalanceHistoryProps> = ({
   );
 };
 
-export default RebalanceHistory;
+export default InsuranceHistory;

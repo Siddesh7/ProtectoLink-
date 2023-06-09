@@ -27,6 +27,8 @@ const Navbar: React.FC<NavbarProps> = ({ action, type, loading, wallet }) => {
             <a
               className="text-[16px] mx-[6px]"
               href={`http://mumbai.polygonscan.com/address/${wallet}`}
+              target="_blank"
+              rel="noreferrer"
             >
               {wallet?.slice(0, 4)}.....{wallet?.slice(38, 43)}
             </a>

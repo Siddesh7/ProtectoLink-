@@ -103,8 +103,8 @@ const TokenBuyForm: React.FC<Props> = ({ buy, loading }) => {
             </select>
 
             <input
-              type="number"
-              className="mr-2 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-indigo-500 text-black"
+              type="text"
+              className="mr-2 px-3 py-1 border w-[30px] border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-indigo-500 text-black"
               value={
                 selectedNumberOfTokens !== null
                   ? selectedNumberOfTokens.toString()

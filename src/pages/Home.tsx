@@ -7,6 +7,8 @@ import {
   RebalancerFactoryABI,
   socketABI,
   cfaABI,
+  insuranceDeployerABI,
+  insuranceBond,
 } from "../constants";
 import { Loading } from "../components/Loading";
 import { getChainConfig } from "../utils";
@@ -25,6 +27,11 @@ import TokenBuyForm from "../components/socket";
 import SocketHistory from "../components/socketHistory";
 import PortfolioRebalancer from "../components/portfolioRebalancer";
 import RebalanceHistory from "../components/rebalancerHistory";
+import SIPHistory from "../components/sipHistory";
+import CreateBond from "../components/assetInsurance";
+import InsuranceHistory from "../components/insuranceHistory";
+import RebalanceHistory1 from "../components/marketplace";
+import InsuranceDeployed from "../components/marketplace";
 
 function Home() {
   const [contractsConfig, setContractsConfig] = useState<
@@ -33,6 +40,7 @@ function Home() {
         SIPFactory?: string;
         SocketFactory?: string;
         RebalancerFactory?: string;
+        InsuranceDeployer?: string;
       }
     | undefined
   >(undefined);
@@ -56,6 +64,8 @@ function Home() {
   const [socketFactory, setSocketFactory] = useState<ethers.Contract | null>(
     null
   );
+  const [insuranceFactory, setInsuranceFactory] =
+    useState<ethers.Contract | null>(null);
   const [rebalancerFactory, setRebalancerFactory] =
     useState<ethers.Contract | null>(null);
   const [user, setUser] = useState<Partial<UserInfo> | null>(null);
@@ -82,6 +92,42 @@ function Home() {
       await cfaV3.populateTransaction.updateFlowOperatorPermissions(
         fdaixaddress,
         contractsConfig?.SIPFactory,
+        "7",
+        "2178321882175756675765"
+      );
+    if (!data) {
+      return;
+    }
+    if (!smartWallet) {
+      return;
+    }
+    try {
+      const { taskId } = await smartWallet.sponsorTransaction(
+        CFAv3address,
+        data
+      );
+      console.log(`https://api.gelato.digital/tasks/status/${taskId}`);
+    } catch (error) {
+      console.log("error");
+    }
+  };
+  const approveSupertoken = async (spender: string): Promise<void> => {
+    if (!gelatoLogin || !web3AuthProvider) {
+      return;
+    }
+
+    const fdaixaddress = "0x5d8b4c2554aeb7e86f387b4d6c00ac33499ed01f";
+    const CFAv3address = "0xcfA132E353cB4E398080B9700609bb008eceB125";
+
+    const cfaV3 = new ethers.Contract(
+      CFAv3address,
+      cfaABI,
+      new ethers.providers.Web3Provider(web3AuthProvider!).getSigner()
+    );
+    let { data } =
+      await cfaV3.populateTransaction.updateFlowOperatorPermissions(
+        fdaixaddress,
+        spender,
         "7",
         "2178321882175756675765"
       );
@@ -208,6 +254,86 @@ function Home() {
       console.log("error");
     }
   };
+  const withdrawAllTokens = async (contractAddress: string): Promise<void> => {
+    if (!gelatoLogin || !web3AuthProvider) {
+      return;
+    }
+
+    const abi = [
+      {
+        inputs: [],
+        name: "withdrawTokens",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+      },
+    ];
+
+    const web3Provider = new ethers.providers.Web3Provider(web3AuthProvider!);
+    const signer = web3Provider.getSigner();
+    const contract = new Contract(contractAddress, abi, signer);
+
+    try {
+      const { data } = await contract.populateTransaction.withdrawTokens();
+
+      if (!data) {
+        return;
+      }
+
+      if (!smartWallet) {
+        return;
+      }
+
+      const { taskId } = await smartWallet.sponsorTransaction(
+        contractAddress,
+        data
+      );
+      console.log(`https://api.gelato.digital/tasks/status/${taskId}`);
+    } catch (error) {
+      console.log("error");
+    }
+  };
+  const buyInsurance = async (contractAddress: string): Promise<void> => {
+    if (!gelatoLogin || !web3AuthProvider) {
+      return;
+    }
+
+    const abi = [
+      {
+        constant: false,
+        inputs: [],
+        name: "buyInsurance",
+        outputs: [],
+        payable: false,
+        stateMutability: "nonpayable",
+        type: "function",
+      },
+    ];
+
+    const web3Provider = new ethers.providers.Web3Provider(web3AuthProvider!);
+    const signer = web3Provider.getSigner();
+    const contract = new Contract(contractAddress, abi, signer);
+
+    try {
+      const { data } = await contract.populateTransaction.buyInsurance();
+
+      if (!data) {
+        return;
+      }
+
+      if (!smartWallet) {
+        return;
+      }
+
+      const { taskId } = await smartWallet.sponsorTransaction(
+        contractAddress,
+        data
+      );
+      console.log(`https://api.gelato.digital/tasks/status/${taskId}`);
+    } catch (error) {
+      console.log("error");
+    }
+  };
   const approveAllTokens = async (
     assetAddresses: string[],
     contractAddress: string
@@ -245,7 +371,7 @@ function Home() {
     const web3Provider = new ethers.providers.Web3Provider(web3AuthProvider!);
     const signer = web3Provider.getSigner();
     for (const token of assetAddresses) {
-      console.log(contractAddress);
+      console.log(token);
       const erc20 = new Contract(token, abi, signer);
 
       try {
@@ -262,10 +388,7 @@ function Home() {
           return;
         }
 
-        const { taskId } = await smartWallet.sponsorTransaction(
-          "0xefA725A5df23b6836EE9660Af6477D664BB0818B",
-          data
-        );
+        const { taskId } = await smartWallet.sponsorTransaction(token, data);
         console.log(`https://api.gelato.digital/tasks/status/${taskId}`);
       } catch (error) {
         console.log("error");
@@ -373,6 +496,68 @@ function Home() {
       console.log("error");
     }
   };
+  const createInsurance = async (
+    threshold: string,
+    superToken: string,
+    assetInsured: String,
+    insuranceAmt: String,
+    tokenAddress: string,
+    flowRate: string
+  ) => {
+    if (!insuranceFactory) {
+      return;
+    }
+
+    let { data } = await insuranceFactory!.populateTransaction.createInsurance(
+      threshold,
+      superToken,
+      assetInsured,
+      insuranceAmt,
+      tokenAddress,
+      flowRate
+    );
+    if (!data) {
+      return;
+    }
+    if (!smartWallet) {
+      return;
+    }
+    try {
+      const { taskId } = await smartWallet.sponsorTransaction(
+        contractsConfig?.InsuranceDeployer!,
+        data
+      );
+      console.log(`https://api.gelato.digital/tasks/status/${taskId}`);
+    } catch (error) {
+      console.log("error");
+    }
+  };
+  const depositTokensInsurance = async (address: string) => {
+    if (!SIPFactoryContract) {
+      return;
+    }
+    console.log(address);
+    const insuranceBondEthers = new ethers.Contract(
+      address,
+      insuranceBond,
+      new ethers.providers.Web3Provider(web3AuthProvider!).getSigner()
+    );
+
+    let { data } =
+      await insuranceBondEthers!.populateTransaction.depositInsuredAmount();
+    if (!data) {
+      return;
+    }
+    if (!smartWallet) {
+      return;
+    }
+    try {
+      const { taskId } = await smartWallet.sponsorTransaction(address, data);
+      console.log(`https://api.gelato.digital/tasks/status/${taskId}`);
+    } catch (error) {
+      console.log("error");
+    }
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -386,6 +571,7 @@ function Home() {
           SIPFactory,
           RebalancerFactory,
           SocketFactory,
+          InsuranceDeployer,
           rpcUrl,
           name,
         } = getChainConfig(chainIdParam);
@@ -413,6 +599,7 @@ function Home() {
           SIPFactory,
           SocketFactory,
           RebalancerFactory,
+          InsuranceDeployer,
         });
         await gelatoLogin.init();
         setGelatoLogin(gelatoLogin);
@@ -459,6 +646,12 @@ function Home() {
         new ethers.providers.Web3Provider(web3AuthProvider!).getSigner()
       );
       setSocketFactory(Socket);
+      const insurance = new ethers.Contract(
+        contractsConfig?.InsuranceDeployer!,
+        insuranceDeployerABI,
+        new ethers.providers.Web3Provider(web3AuthProvider!).getSigner()
+      );
+      setInsuranceFactory(insurance);
       const Rebalancer = new ethers.Contract(
         contractsConfig?.RebalancerFactory!,
         RebalancerFactoryABI,
@@ -470,6 +663,7 @@ function Home() {
           !SIPFactoryContract ||
           !rebalancerFactory ||
           !socketFactory ||
+          !insuranceFactory ||
           !gelatoSmartWallet
         ) {
           return;
@@ -514,21 +708,45 @@ function Home() {
         loading={isLoading}
         wallet={smartWallet?.getAddress()!}
       />
-
       <Hero login={login} wallet={web3AuthProvider} loading={isLoading} />
-      <PortfolioRebalancer createPortfolioRebalancer={createVault} />
-      <RebalanceHistory
-        user={smartWallet?.getAddress()!}
-        approve={approveAllTokens}
-        deposit={depositAllTokens}
-      />
-      <SIPCard
-        buy={createSIP}
-        approve={approveXtoken}
-        loading={smartWallet?.isInitiated()}
-      />
-      <TokenBuyForm buy={createSocket} loading={smartWallet?.isInitiated()} />
-      <SocketHistory user={smartWallet?.getAddress()!} approve={approveERC20} />
+      <div className="min-h-[100vh]">
+        {" "}
+        <CreateBond createInsurance={createInsurance} />
+        <InsuranceHistory
+          user={smartWallet?.getAddress()!}
+          deposit={depositTokensInsurance}
+          approve={approveERC20}
+        />
+        <InsuranceDeployed
+          user={smartWallet?.getAddress()!}
+          approve={approveSupertoken}
+          buy={buyInsurance}
+        />
+      </div>
+      <div className="min-h-[100vh]">
+        <PortfolioRebalancer createPortfolioRebalancer={createVault} />
+        <RebalanceHistory
+          user={smartWallet?.getAddress()!}
+          approve={approveAllTokens}
+          deposit={depositAllTokens}
+          withdraw={withdrawAllTokens}
+        />
+      </div>
+      <div className="min-h-[100vh]">
+        <SIPCard
+          buy={createSIP}
+          approve={approveXtoken}
+          loading={smartWallet?.isInitiated()}
+        />
+        <SIPHistory user={smartWallet?.getAddress()!} />
+      </div>{" "}
+      <div className="min-h-[100vh]">
+        <TokenBuyForm buy={createSocket} loading={smartWallet?.isInitiated()} />
+        <SocketHistory
+          user={smartWallet?.getAddress()!}
+          approve={approveERC20}
+        />
+      </div>
     </div>
   );
 

@@ -19,7 +19,7 @@ interface Props {
   loading: any;
   approve: () => void;
 }
-const days: number[] = [7, 14, 30, 60];
+const days: number[] = [1, 7, 14, 30, 60];
 
 const SIPForm: React.FC<Props> = ({ buy, loading, approve }) => {
   const [selectedBuyingToken, setSelectedBuyingToken] = useState<string>("");
@@ -57,34 +57,60 @@ const SIPForm: React.FC<Props> = ({ buy, loading, approve }) => {
     const seconds = !isNaN(selectedDays) ? selectedDays * 24 * 60 * 60 : null;
     setSelectedFrequency(seconds);
   };
+  function reloadPageAfterDelay() {
+    setTimeout(() => {
+      window.location.reload();
+    }, 5000);
+  }
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    buy(
-      selectedBuyingToken,
-      selectedSellingToken,
-      selectedNumberOfTokens,
-      selectedFrequency
-    );
-    console.log(
-      selectedBuyingToken,
-      selectedSellingToken,
-      selectedNumberOfTokens,
-      selectedFrequency
-    );
-    console.log(
-      `I want to buy ${selectedBuyingToken} token for ${selectedNumberOfTokens} ${selectedSellingToken} every ${selectedFrequency} days`
-    );
+    if (selectedFrequency == 86400) {
+      buy(
+        selectedBuyingToken,
+        selectedSellingToken,
+        selectedNumberOfTokens,
+        selectedFrequency / 86400
+      );
+      console.log(
+        selectedBuyingToken,
+        selectedSellingToken,
+        selectedNumberOfTokens,
+        selectedFrequency / 86400
+      );
+      console.log(
+        `I want to buy ${selectedBuyingToken} token for ${selectedNumberOfTokens} ${selectedSellingToken} every ${
+          selectedFrequency / 86400
+        } second`
+      );
+    } else {
+      buy(
+        selectedBuyingToken,
+        selectedSellingToken,
+        selectedNumberOfTokens,
+        selectedFrequency
+      );
+      console.log(
+        selectedBuyingToken,
+        selectedSellingToken,
+        selectedNumberOfTokens,
+        selectedFrequency
+      );
+      console.log(
+        `I want to buy ${selectedBuyingToken} token for ${selectedNumberOfTokens} ${selectedSellingToken} every ${selectedFrequency} second`
+      );
+    }
+    reloadPageAfterDelay();
   };
 
   return (
     <div className="my-[60px] card w-[80vw] m-auto bg-neutral text-neutral-content">
       <div className="card-body items-center text-center">
-        <h2 className="text-3xl font-extrabold animate-gradient">
+        <h2 className="text-4xl font-extrabold animate-gradient">
           Start a SIP in 1 click!
         </h2>
         <div className="flex justify-center">
-          <form className="flex items-center" onSubmit={handleSubmit}>
+          <div className="flex items-center">
             <p className="mr-2">I want to buy</p>
 
             <select
@@ -105,8 +131,8 @@ const SIPForm: React.FC<Props> = ({ buy, loading, approve }) => {
             <span className="mr-2">token for</span>
 
             <input
-              type="number"
-              className="mr-2 px-3 py-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-indigo-500 text-black"
+              type="text"
+              className="mr-2 px-3 py-1 w-[40px] border border-gray-300 rounded-md shadow-sm focus:outline-none focus:border-indigo-500 text-black"
               value={
                 selectedNumberOfTokens !== null
                   ? selectedNumberOfTokens.toString()
@@ -155,42 +181,25 @@ const SIPForm: React.FC<Props> = ({ buy, loading, approve }) => {
             <span>days</span>
             {approvedTokens ? (
               <div>
-                {!loading ? (
-                  <button
-                    type="submit"
-                    className={`ml-4 py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 ${
-                      !selectedBuyingToken ||
-                      selectedNumberOfTokens === null ||
-                      !selectedSellingToken ||
-                      selectedFrequency === null
-                        ? "opacity-50 cursor-not-allowed"
-                        : ""
-                    }`}
-                    disabled
-                  >
-                    Create SIP
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    className={`ml-4 py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 ${
-                      !selectedBuyingToken ||
-                      selectedNumberOfTokens === null ||
-                      !selectedSellingToken ||
-                      selectedFrequency === null
-                        ? "opacity-50 cursor-not-allowed"
-                        : ""
-                    }`}
-                    disabled={
-                      !selectedBuyingToken ||
-                      selectedNumberOfTokens === null ||
-                      !selectedSellingToken ||
-                      selectedFrequency === null
-                    }
-                  >
-                    Create SIP
-                  </button>
-                )}
+                <button
+                  onClick={handleSubmit}
+                  className={`ml-4 py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 ${
+                    !selectedBuyingToken ||
+                    selectedNumberOfTokens === null ||
+                    !selectedSellingToken ||
+                    selectedFrequency === null
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
+                  disabled={
+                    !selectedBuyingToken ||
+                    selectedNumberOfTokens === null ||
+                    !selectedSellingToken ||
+                    selectedFrequency === null
+                  }
+                >
+                  Create SIP
+                </button>
               </div>
             ) : (
               <div>
@@ -234,7 +243,7 @@ const SIPForm: React.FC<Props> = ({ buy, loading, approve }) => {
                 )}
               </div>
             )}
-          </form>
+          </div>
         </div>
       </div>
     </div>

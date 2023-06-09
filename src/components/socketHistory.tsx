@@ -40,7 +40,9 @@ const SocketHistory: React.FC<SocketHistoryProps> = ({ user, approve }) => {
   };
 
   return (
-    <div className="w-[80vw] m-auto">
+    <div className="w-[80vw] m-auto mt-[20px]">
+      {" "}
+      <h3 className="text-3xl font-bold text-center">Your Buy Vaults</h3>
       <div className="overflow-x-auto">
         {transactions.length === 0 ? (
           <p className="text-center">No new transactions found</p>

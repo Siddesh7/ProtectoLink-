@@ -110,8 +110,8 @@ const PortfolioRebalancer: React.FC<CreatePortfolioRebalancerProps> = ({
 
   return (
     <div className="card w-[80vw] m-auto bg-neutral text-neutral-content p-16">
-      <h2 className="text-3xl font-extrabold animate-gradient text-center">
-        Start a Token Buy Order!
+      <h2 className="text-4xl font-extrabold animate-gradient text-center mb-[10px]">
+        Create an automatic Vault!
       </h2>
       <div className="flex flex-row items-center justify-between">
         <div className="flex flex-col  mt-[20px]">

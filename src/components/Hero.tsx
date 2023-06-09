@@ -16,8 +16,8 @@ const Hero: React.FC<HeroProps> = ({ login, wallet, loading }) => {
             The only platform to simplify investing!
           </h1>
           <p className="py-6 text-[20px] max-w-[70%]">
-            Level Up Your DeFi Game: Introducing Our Automatic Portfolio
-            Rebalancing Vault and more such automations for you!
+            Level Up Your DeFi Game: Introducing Our Asset Protection, Automatic
+            Portfolio Rebalancing Vault and more such automations for you!
           </p>
           <div className="flex">
             {!wallet && (
@@ -39,7 +39,7 @@ const Hero: React.FC<HeroProps> = ({ login, wallet, loading }) => {
             )}
             <div className="flex flex-row items-center">
               <h1 className="text-3xl font-extrabold text-gray-400">
-                Gasless Automatic Rebalancing
+                Gasless, Easy, Secure
               </h1>
             </div>
           </div>
