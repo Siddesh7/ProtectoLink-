@@ -21,12 +21,6 @@ Technologies used:
 Factory contracts are in [```src/contracts```](https://github.com/Siddesh7/ProtectoLink/tree/main/src/contracts)
 
 
-Contracts addresses
-```
-    SIPFactory: "0x0f1eAdb933A19dE5899ac427d1Ffee14f44c9251",
-    RebalancerFactory: "0x7524E1eD4943A6a01c03CDFF7F79E14655296d13",
-    SocketFactory: "0x245a36D23cba264055ACD839330Adcb848be4475",
-    InsuranceDeployer: "0xde5fcC14C6B6ff4B1ab937a258F2Cc38577FFDaa"
-```
+SIP and onchain trigger contracts are deployed on moonbeam Alpha testnet, Insurance contracts are deployed on Polygon Mumbai 
 
 
