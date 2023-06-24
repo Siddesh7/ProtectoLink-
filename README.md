@@ -21,7 +21,7 @@ Technologies used:
 Factory contracts are in [```src/contracts```](https://github.com/Siddesh7/ProtectoLink/tree/main/src/contracts)
 
 
-Contracts are deployed in Polygon Mumbai
+Contracts addresses
 ```
     SIPFactory: "0x0f1eAdb933A19dE5899ac427d1Ffee14f44c9251",
     RebalancerFactory: "0x7524E1eD4943A6a01c03CDFF7F79E14655296d13",
